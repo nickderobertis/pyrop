@@ -16,12 +16,15 @@ from typing_extensions import ParamSpec
 
 from pyrop._either import Either, Left, Right
 
+_OldUnionType = type(Union[int, str])
+
+UnionTypes: tuple[type, ...]
 try:
     # Python 3.10+
-    UnionTypes = (types.UnionType, type(Union[int, str]))
+    UnionTypes = (types.UnionType, _OldUnionType)  # type: ignore[attr-defined]
 except AttributeError:
     # Python 3.9
-    UnionTypes = (type(Union[int, str]),)
+    UnionTypes = (_OldUnionType,)
 
 E = TypeVar("E", bound=BaseException)
 T = TypeVar("T")
