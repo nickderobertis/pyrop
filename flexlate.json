@@ -11,5 +11,13 @@
       "render_relative_root_in_template": "{{ repo_name }}"
     }
   ],
-  "applied_templates": []
+  "applied_templates": [
+    {
+      "name": "copier-pypi-sphinx-flexlate",
+      "data": {},
+      "version": "5fe3950bd42fe1eccb9e6339d308e12e352fbd16",
+      "add_mode": "local",
+      "root": "."
+    }
+  ]
 }
