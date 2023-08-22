@@ -223,17 +223,48 @@ class EitherMonad(Generic[E_con]):
         return arg.fold(lambda e: raise_exception_like(e), lambda a: a)
 
 
+@overload
+def monadic_method(  # type: ignore[misc]
+    func: Callable[Concatenate[AA, EitherMonad[E], P], Awaitable[A]]
+) -> Callable[Concatenate[AA, P], Awaitable[Either[E, A]]]:
+    ...
+
+
+@overload
 def monadic_method(
     func: Callable[Concatenate[AA, EitherMonad[E], P], A]
 ) -> Callable[Concatenate[AA, P], Either[E, A]]:
+    ...
+
+
+def monadic_method(
+    func: Callable[Concatenate[AA, EitherMonad[E], P], A]
+    | Callable[Concatenate[AA, EitherMonad[E], P], Awaitable[A]]
+) -> (
+    Callable[Concatenate[AA, P], Either[E, A]]
+    | Callable[Concatenate[AA, P], Awaitable[Either[E, A]]]
+):
     @functools.wraps(func)
     def _wrapper(self_arg: AA, *args: P.args, **kwargs: P.kwargs) -> Either[E, A]:
         try:
-            return Either.right(func(self_arg, EitherMonad(), *args, **kwargs))
+            result = cast(A, func(self_arg, EitherMonad(), *args, **kwargs))
+            return Either.right(result)
         except Exception as e:
             return Either.left(cast(E, e))
 
-    return _wrapper
+    if not inspect.iscoroutinefunction(func):
+        return _wrapper
+
+    @functools.wraps(func)
+    async def _wrapper_async(
+        self_arg: AA, *args: P.args, **kwargs: P.kwargs
+    ) -> Either[E, A]:
+        try:
+            return Either.right(await func(self_arg, EitherMonad(), *args, **kwargs))
+        except Exception as e:
+            return Either.left(cast(E, e))
+
+    return _wrapper_async
 
 
 @overload
