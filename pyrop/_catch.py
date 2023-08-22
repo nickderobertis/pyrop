@@ -29,8 +29,7 @@ class catch(Generic[T]):
     def _exception_type(self) -> T:
         return get_args(self.__orig_class__)[0]  # type: ignore[attr-defined]
 
-    @cached_property
-    def _exceptions(self) -> tuple[type[BaseException], ...]:
+    def _create_exceptions(self) -> tuple[type[BaseException], ...]:
         if isinstance(self._exception_type, types.UnionType):
             exceptions = get_args(self._exception_type)
         elif issubclass(self._exception_type, BaseException):  # type: ignore[arg-type]
@@ -52,12 +51,14 @@ class catch(Generic[T]):
     def __call__(
         self, func: Callable[P, R] | Callable[P, Awaitable[R]]
     ) -> Callable[P, Either[T, R]] | Callable[P, Awaitable[Either[T, R]]]:
+        exceptions = self._create_exceptions()
+
         @wraps(func)
         def wrapper(*args: P.args, **kwargs: P.kwargs) -> Either[T, R]:
             try:
                 result = cast(R, func(*args, **kwargs))
                 return Success(result)
-            except self._exceptions as e:
+            except exceptions as e:
                 return Failure(cast(T, e))
 
         if not inspect.iscoroutinefunction(func):
@@ -67,7 +68,7 @@ class catch(Generic[T]):
         async def wrapper_async(*args: P.args, **kwargs: P.kwargs) -> Either[T, R]:
             try:
                 return Success(await func(*args, **kwargs))
-            except self._exceptions as e:
+            except exceptions as e:
                 return Failure(cast(T, e))
 
         return wrapper_async
