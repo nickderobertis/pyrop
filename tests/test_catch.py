@@ -1,3 +1,5 @@
+from typing import Union
+
 import pytest
 
 from pyrop import Failure, Success, catch
@@ -21,7 +23,7 @@ async def test_catch_wraps_async_success():
 
 
 def test_catch_multiple_wraps_success():
-    @catch[ValueError | NotImplementedError]()
+    @catch[Union[ValueError, NotImplementedError]]()
     def _func() -> int:
         return 1
 
@@ -52,7 +54,7 @@ async def test_catch_wraps_async_failure():
 def test_catch_multiple_wraps_failure():
     error = ValueError("test error")
 
-    @catch[ValueError | NotImplementedError]()
+    @catch[Union[ValueError, NotImplementedError]]()
     def _func() -> int:
         raise error
 
@@ -85,7 +87,7 @@ async def test_catch_does_not_catch_other_async_exceptions():
 def test_catch_multiple_does_not_catch_other_exceptions():
     error = TypeError("test error")
 
-    @catch[ValueError | NotImplementedError]()
+    @catch[Union[ValueError, NotImplementedError]]()
     def _func() -> int:
         raise error
 

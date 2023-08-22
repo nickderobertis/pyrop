@@ -16,6 +16,13 @@ from typing_extensions import ParamSpec
 
 from pyrop._either import Either, Left, Right
 
+try:
+    # Python 3.10+
+    UnionType = types.UnionType
+except AttributeError:
+    # Python 3.9
+    UnionType = type(Union[int, str])
+
 E = TypeVar("E", bound=BaseException)
 T = TypeVar("T")
 R = TypeVar("R", covariant=True)
@@ -32,7 +39,7 @@ class catch(Generic[T]):
         return get_args(self.__orig_class__)[0]  # type: ignore[attr-defined]
 
     def _create_exceptions(self) -> tuple[type[BaseException], ...]:
-        if isinstance(self._exception_type, types.UnionType):
+        if isinstance(self._exception_type, UnionType):
             exceptions = get_args(self._exception_type)
         elif issubclass(self._exception_type, BaseException):  # type: ignore[arg-type]
             exceptions = (self._exception_type,)
