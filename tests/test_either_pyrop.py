@@ -1,6 +1,6 @@
 import pytest
 
-from pyrop.either import Either, EitherException
+from pyrop._either import Either, EitherException
 
 
 def test_either_get():

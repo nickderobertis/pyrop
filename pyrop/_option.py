@@ -1,6 +1,6 @@
 from typing import TypeVar
 
-from pyrop.either import Either, Right
+from pyrop._either import Either, Right
 
 T = TypeVar("T", covariant=True)
 

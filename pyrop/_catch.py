@@ -12,7 +12,7 @@ from typing import (
     overload,
 )
 
-from pyrop.either import Either, Left, Right
+from pyrop._either import Either, Left, Right
 
 E = TypeVar("E", bound=BaseException)
 T = TypeVar("T")

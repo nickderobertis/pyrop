@@ -3,7 +3,7 @@ from typing import Callable, NoReturn, Set, Tuple, Type, TypeVar, Union
 
 import pytest
 
-from pyrop.either import Any, Either, EitherException, EitherMonad, Left, Right
+from pyrop._either import Any, Either, EitherException, EitherMonad, Left, Right
 
 A = TypeVar("A")
 B = TypeVar("B")
