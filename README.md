@@ -14,7 +14,9 @@
 
 ## Overview
 
-Imperative-style railway-oriented programming in Python
+Imperative-style railway-oriented programming in Python, 
+including fully-typed errors. Supports sync and async 
+functions and methods.
 
 ## Getting Started
 
@@ -27,15 +29,39 @@ pip install pyrop
 A simple example:
 
 ```python
-import pyrop
+from pyrop import monadic, catch, EitherMonad, Left
 
-# Do something with pyrop
+catcher = catch[ValueError | TypeError]()
+
+@catcher
+def func_with_error():
+    raise ValueError("This is an error")
+
+@catcher
+def success_func() -> int:
+    return 1
+
+@monadic
+def func(do: EitherMonad[ValueError | TypeError]) -> int:
+    value = do << success_func()
+    print(f"Value is {value}")
+    do << func_with_error()
+    print("This will not execute")
+    return value
+
+
+res = func()
+assert isinstance(res, Left)
+assert isinstance(res.value, ValueError)
+
+try:
+    func().get()
+except ValueError as e:
+    print(f"Caught error: {e}")
+
+assert func().map_left(lambda e: "Error occurred") == Left("Error occurred")
+assert func().get_or_else(1) == 1
 ```
-
-See a
-[more in-depth tutorial here.](
-https://nickderobertis.github.io/pyrop/tutorial.html
-)
 
 ## Links
 
