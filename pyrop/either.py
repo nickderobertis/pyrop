@@ -21,7 +21,6 @@ from typing_extensions import Concatenate, ParamSpec
 A = TypeVar("A", covariant=True)
 AV = TypeVar("AV", covariant=True)
 AV2 = TypeVar("AV2", covariant=True)
-A1 = TypeVar("A1")
 AA = TypeVar("AA")
 
 B = TypeVar("B", covariant=True)
@@ -30,8 +29,7 @@ BV2 = TypeVar("BV2", covariant=True)
 BB = TypeVar("BB")
 
 C = TypeVar("C")
-C1 = TypeVar("C1")
-C2 = TypeVar("C2")
+D = TypeVar("D")
 
 E = TypeVar("E", covariant=True)
 E_con = TypeVar("E_con", contravariant=True)
@@ -54,14 +52,17 @@ class Either(Generic[A, B], metaclass=ABCMeta):
 
     # New methods
 
-    def get(self) -> B:
+    def get(self: "Either[AA, BB]") -> BB:
         return self.fold(lambda e: raise_exception_like(e), lambda a: a)
 
-    def get_or_else(self, default: C) -> B | C:
+    def get_or_else(self: "Either[AA, BB]", default: C) -> BB | C:
         return self.fold(lambda e: default, lambda a: a)
 
-    def or_else(self, default: C) -> "Either[C, B]":
-        return self.fold(lambda e: Either.right(default), lambda a: Either.right(a))
+    def or_else(self: "Either[AA, BB]", default: C) -> "Either[C, BB]":
+        return self.fold(
+            lambda e: Either.right(default),  # type: ignore[arg-type]
+            lambda a: Either.right(a),
+        )
 
     def either_fold(
         self,
@@ -73,17 +74,17 @@ class Either(Generic[A, B], metaclass=ABCMeta):
     # Below are methods from ziopy
 
     @staticmethod
-    def left(a: AA) -> "Left[AA]":
-        return Left(a)
+    def left(value: C) -> "Either[C, NoReturn]":
+        return Left(value)
 
     @staticmethod
-    def right(b: BB) -> "Right[BB]":
-        return Right(b)
+    def right(value: C) -> "Either[NoReturn, C]":
+        return Right(value)
 
     @staticmethod
     def from_union(
-        value: Union[A, B], left_type: Type[A], right_type: Type[B]
-    ) -> "Either[A, B]":
+        value: Union[C, D], left_type: Type[C], right_type: Type[D]
+    ) -> "Either[C, D]":
         if isinstance(value, left_type):
             return Either.left(value)
         elif isinstance(value, right_type):
@@ -92,26 +93,26 @@ class Either(Generic[A, B], metaclass=ABCMeta):
             raise TypeError()
 
     @staticmethod
-    def from_optional(value: Optional[B]) -> "Either[None, B]":
+    def from_optional(value: Optional[C]) -> "Either[None, C]":
         if value is None:
             return Either.left(value)
         return Either.right(value)
 
-    def to_left(self: "Either[AA, NoReturn]") -> "Left[AA]":
+    def to_left(self) -> "Left[A]":
         if not isinstance(self, Left):
             raise TypeError("to_left can only be called on an instance of Left.")
         return self
 
-    def to_right(self: "Either[NoReturn, BB]") -> "Right[BB]":
+    def to_right(self) -> "Right[B]":
         if not isinstance(self, Right):
             raise TypeError("to_right can only be called on an instance of Right.")
         return self
 
     def match(
         self,
-        case_left: "Callable[[Left[A]], C1]",
-        case_right: "Callable[[Right[B]], C2]",
-    ) -> Union[C1, C2]:
+        case_left: "Callable[[Left[A]], C]",
+        case_right: "Callable[[Right[B]], D]",
+    ) -> Union[C, D]:
         if isinstance(self, Left):
             return case_left(self)
         elif isinstance(self, Right):
@@ -120,8 +121,8 @@ class Either(Generic[A, B], metaclass=ABCMeta):
             raise TypeError()
 
     def fold(
-        self, case_left: "Callable[[A], C1]", case_right: "Callable[[B], C2]"
-    ) -> Union[C1, C2]:
+        self, case_left: "Callable[[A], C]", case_right: "Callable[[B], D]"
+    ) -> Union[C, D]:
         return self.match(lambda x: case_left(x.value), lambda y: case_right(y.value))
 
     def swap(self) -> "Either[B, A]":
@@ -136,21 +137,19 @@ class Either(Generic[A, B], metaclass=ABCMeta):
     def map_left(self, f: Callable[[A], C]) -> "Either[C, B]":
         return self.match(lambda left: Either.left(f(left.value)), lambda right: right)
 
-    def flat_map(self, f: "Callable[[B], Either[AA, C]]") -> "Either[Union[A, AA], C]":
+    def flat_map(self, f: "Callable[[B], Either[C, D]]") -> "Either[Union[A, C], D]":
         return self.match(lambda left: left, lambda right: f(right.value))
 
-    def __lshift__(
-        self, f: "Callable[[B], Either[AA, C]]"
-    ) -> "Either[Union[A, AA], C]":
+    def __lshift__(self, f: "Callable[[B], Either[C, D]]") -> "Either[Union[A, C], D]":
         return self.flat_map(f)
 
-    def flatten(self: "Either[A1, Either[AA, BB]]") -> "Either[Union[A1, AA], BB]":
+    def flatten(self: "Either[A, Either[C, D]]") -> "Either[Union[A, C], D]":
         return self.flat_map(lambda x: x)
 
     def require(
-        self, predicate: Callable[[B], bool], to_error: Callable[[B], AA]
-    ) -> "Either[Union[A, AA], B]":
-        def _case_right(right: Right[B]) -> "Either[Union[A, AA], B]":
+        self, predicate: Callable[[B], bool], to_error: Callable[[B], C]
+    ) -> "Either[Union[A, C], B]":
+        def _case_right(right: Right[B]) -> "Either[Union[A, C], B]":
             if predicate(right.value):
                 return right
             return Either.left(to_error(right.value))
@@ -168,7 +167,7 @@ class Either(Generic[A, B], metaclass=ABCMeta):
         return self.match(lambda left: left, _case_right)
 
     def raise_errors(self: "Either[AA, BB]") -> "Either[NoReturn, BB]":
-        def _case_left(error: AA) -> NoReturn:
+        def _case_left(error) -> NoReturn:
             if isinstance(error, Exception):
                 raise error from error
             else:
@@ -238,7 +237,7 @@ def monadic_method(
 
 
 @overload
-def monadic(
+def monadic(  # type: ignore[misc]
     func: Callable[Concatenate[EitherMonad[E], P], Awaitable[A]]
 ) -> Callable[P, Awaitable[Either[E, A]]]:
     ...
@@ -251,14 +250,15 @@ def monadic(
     ...
 
 
-def monadic(
+def monadic(  # type: ignore[misc]
     func: Callable[Concatenate[EitherMonad[E], P], A]
     | Callable[Concatenate[EitherMonad[E], P], Awaitable[A]]
 ) -> Callable[P, Either[E, A]] | Callable[P, Awaitable[Either[E, A]]]:
     @functools.wraps(func)
     def _wrapper(*args: P.args, **kwargs: P.kwargs) -> Either[E, A]:
         try:
-            return Either.right(func(EitherMonad(), *args, **kwargs))
+            result = cast(A, func(EitherMonad(), *args, **kwargs))
+            return Either.right(result)
         except Exception as e:
             return Either.left(cast(E, e))
 
