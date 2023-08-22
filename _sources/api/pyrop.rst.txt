@@ -1,0 +1,7 @@
+pyrop package
+=============
+
+.. automodule:: pyrop
+   :members:
+   :undoc-members:
+   :show-inheritance:
