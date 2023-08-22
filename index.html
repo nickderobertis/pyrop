@@ -300,9 +300,7 @@
 <h1 id="pyrop">pyrop<a class="headerlink" href="#pyrop" title="Link to this heading">¶</a></h1>
 <section id="overview">
 <h2 id="overview">Overview<a class="headerlink" href="#overview" title="Link to this heading">¶</a></h2>
-<p>Imperative-style railway-oriented programming in Python,
-including fully-typed errors. Supports sync and async
-functions and methods.</p>
+<p>Imperative-style railway-oriented programming in Python</p>
 </section>
 <section id="getting-started">
 <h2 id="getting-started">Getting Started<a class="headerlink" href="#getting-started" title="Link to this heading">¶</a></h2>
@@ -311,40 +309,13 @@ functions and methods.</p>
 </pre></div>
 </div>
 <p>A simple example:</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pyrop</span> <span class="kn">import</span> <span class="n">monadic</span><span class="p">,</span> <span class="n">catch</span><span class="p">,</span> <span class="n">EitherMonad</span><span class="p">,</span> <span class="n">Left</span>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">pyrop</span>
 
-<span class="n">catcher</span> <span class="o">=</span> <span class="n">catch</span><span class="p">[</span><span class="ne">ValueError</span> <span class="o">|</span> <span class="ne">TypeError</span><span class="p">]()</span>
-
-<span class="nd">@catcher</span>
-<span class="k">def</span> <span class="nf">func_with_error</span><span class="p">():</span>
-    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">"This is an error"</span><span class="p">)</span>
-
-<span class="nd">@catcher</span>
-<span class="k">def</span> <span class="nf">success_func</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="k">return</span> <span class="mi">1</span>
-
-<span class="nd">@monadic</span>
-<span class="k">def</span> <span class="nf">func</span><span class="p">(</span><span class="n">do</span><span class="p">:</span> <span class="n">EitherMonad</span><span class="p">[</span><span class="ne">ValueError</span> <span class="o">|</span> <span class="ne">TypeError</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="nb">int</span><span class="p">:</span>
-    <span class="n">value</span> <span class="o">=</span> <span class="n">do</span> <span class="o">&lt;&lt;</span> <span class="n">success_func</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Value is </span><span class="si">{</span><span class="n">value</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-    <span class="n">do</span> <span class="o">&lt;&lt;</span> <span class="n">func_with_error</span><span class="p">()</span>
-    <span class="nb">print</span><span class="p">(</span><span class="s2">"This will not execute"</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">value</span>
-
-
-<span class="n">res</span> <span class="o">=</span> <span class="n">func</span><span class="p">()</span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="p">,</span> <span class="n">Left</span><span class="p">)</span>
-<span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">value</span><span class="p">,</span> <span class="ne">ValueError</span><span class="p">)</span>
-
-<span class="k">try</span><span class="p">:</span>
-    <span class="n">func</span><span class="p">()</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
-<span class="k">except</span> <span class="ne">ValueError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
-    <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Caught error: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
-
-<span class="k">assert</span> <span class="n">func</span><span class="p">()</span><span class="o">.</span><span class="n">map_left</span><span class="p">(</span><span class="k">lambda</span> <span class="n">e</span><span class="p">:</span> <span class="s2">"Error occurred"</span><span class="p">)</span> <span class="o">==</span> <span class="n">Left</span><span class="p">(</span><span class="s2">"Error occurred"</span><span class="p">)</span>
-<span class="k">assert</span> <span class="n">func</span><span class="p">()</span><span class="o">.</span><span class="n">get_or_else</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span>
+<span class="c1"># Do something with pyrop</span>
 </pre></div>
 </div>
+<p>See a
+<a class="reference external" href="https://nickderobertis.github.io/pyrop/tutorial.html">more in-depth tutorial here.</a></p>
 </section>
 <section id="links">
 <h2 id="links">Links<a class="headerlink" href="#links" title="Link to this heading">¶</a></h2>
