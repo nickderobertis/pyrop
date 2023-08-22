@@ -5,12 +5,14 @@ from typing import (
     Awaitable,
     Callable,
     Generic,
-    ParamSpec,
     TypeVar,
+    Union,
     cast,
     get_args,
     overload,
 )
+
+from typing_extensions import ParamSpec
 
 from pyrop._either import Either, Left, Right
 
@@ -49,8 +51,8 @@ class catch(Generic[T]):
         ...
 
     def __call__(
-        self, func: Callable[P, R] | Callable[P, Awaitable[R]]
-    ) -> Callable[P, Either[T, R]] | Callable[P, Awaitable[Either[T, R]]]:
+        self, func: Union[Callable[P, R], Callable[P, Awaitable[R]]]
+    ) -> Union[Callable[P, Either[T, R]], Callable[P, Awaitable[Either[T, R]]]]:
         exceptions = self._create_exceptions()
 
         @wraps(func)

@@ -55,7 +55,7 @@ class Either(Generic[A, B], metaclass=ABCMeta):
     def get(self: "Either[AA, BB]") -> BB:
         return self.fold(lambda e: raise_exception_like(e), lambda a: a)
 
-    def get_or_else(self: "Either[AA, BB]", default: C) -> BB | C:
+    def get_or_else(self: "Either[AA, BB]", default: C) -> Union[BB, C]:
         return self.fold(lambda e: default, lambda a: a)
 
     def or_else(self: "Either[AA, BB]", default: C) -> "Either[C, BB]":
@@ -68,7 +68,7 @@ class Either(Generic[A, B], metaclass=ABCMeta):
         self,
         case_left: "Callable[[A], Either[AV, BV]]",
         case_right: "Callable[[B], Either[AV2, BV2]]",
-    ) -> "Either[AV | AV2, BV | BV2]":
+    ) -> "Either[Union[AV, AV2], Union[BV, BV2]]":
         return self.match(lambda x: case_left(x.value), lambda y: case_right(y.value))
 
     # Below are methods from ziopy
@@ -238,12 +238,14 @@ def monadic_method(
 
 
 def monadic_method(
-    func: Callable[Concatenate[AA, EitherMonad[E], P], A]
-    | Callable[Concatenate[AA, EitherMonad[E], P], Awaitable[A]]
-) -> (
-    Callable[Concatenate[AA, P], Either[E, A]]
-    | Callable[Concatenate[AA, P], Awaitable[Either[E, A]]]
-):
+    func: Union[
+        Callable[Concatenate[AA, EitherMonad[E], P], A],
+        Callable[Concatenate[AA, EitherMonad[E], P], Awaitable[A]],
+    ]
+) -> Union[
+    Callable[Concatenate[AA, P], Either[E, A]],
+    Callable[Concatenate[AA, P], Awaitable[Either[E, A]]],
+]:
     @functools.wraps(func)
     def _wrapper(self_arg: AA, *args: P.args, **kwargs: P.kwargs) -> Either[E, A]:
         try:
@@ -282,9 +284,11 @@ def monadic(
 
 
 def monadic(  # type: ignore[misc]
-    func: Callable[Concatenate[EitherMonad[E], P], A]
-    | Callable[Concatenate[EitherMonad[E], P], Awaitable[A]]
-) -> Callable[P, Either[E, A]] | Callable[P, Awaitable[Either[E, A]]]:
+    func: Union[
+        Callable[Concatenate[EitherMonad[E], P], A],
+        Callable[Concatenate[EitherMonad[E], P], Awaitable[A]],
+    ]
+) -> Union[Callable[P, Either[E, A]], Callable[P, Awaitable[Either[E, A]]]]:
     @functools.wraps(func)
     def _wrapper(*args: P.args, **kwargs: P.kwargs) -> Either[E, A]:
         try:
