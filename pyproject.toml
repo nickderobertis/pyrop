@@ -36,6 +36,7 @@ python = ">=3.8"
 [tool.poetry.group.test.dependencies]
 pytest = "*"
 pytest-cov = "*"
+anyio = "^3.7.1"
 
 [tool.black]
 include = 'pyrop.*\.pyi?$|tests.*\.pyi?$'
