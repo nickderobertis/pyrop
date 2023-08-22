@@ -23,6 +23,9 @@ classifiers = [
 ]
 include = ["conf.py", "version.py"]
 
+[tool.setuptools]
+packages = ["pyrop"]
+
 [tool.poetry.urls]
 repository = "https://github.com/nickderobertis/pyrop"
 documentation = "https://nickderobertis.github.io/pyrop"
