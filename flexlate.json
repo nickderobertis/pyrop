@@ -14,7 +14,26 @@
   "applied_templates": [
     {
       "name": "copier-pypi-sphinx-flexlate",
-      "data": {},
+      "data": {
+        "package_name": "pyrop",
+        "package_directory": "pyrop",
+        "full_name": "Python Railway-Oriented Programming",
+        "repo_name": "pyrop",
+        "repo_username": "nickderobertis",
+        "short_description": "Imperative-style railway-oriented programming in Python",
+        "main_branch_name": "main",
+        "package_author": "Nick DeRobertis",
+        "author_email": "derobertis.nick@gmail.com",
+        "google_analytics_id": "",
+        "os_support": [
+          "ubuntu",
+          "macos",
+          "windows"
+        ],
+        "minimum_python_version": "3.8",
+        "topics": [],
+        "logo_url": ""
+      },
       "version": "5fe3950bd42fe1eccb9e6339d308e12e352fbd16",
       "add_mode": "local",
       "root": "."
