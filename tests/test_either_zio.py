@@ -3,15 +3,7 @@ from typing import Callable, NoReturn, Set, Tuple, Type, TypeVar, Union
 
 import pytest
 
-from pyrop.either import (
-    Any,
-    Either,
-    EitherException,
-    EitherMonad,
-    Left,
-    Right,
-    TypeMatchException,
-)
+from pyrop.either import Any, Either, EitherException, EitherMonad, Left, Right
 
 A = TypeVar("A")
 B = TypeVar("B")
@@ -391,3 +383,27 @@ def test_to_union() -> None:
     # mypy should properly unify Union[NoReturn, X] for all types X.
     assert Either.left(42).to_union() + 1 == 43
     assert len(Either.right("hello").to_union()) == len("hello")
+
+
+def test_eithermonad_contravariant() -> None:
+    class E1:
+        pass
+
+    class E2:
+        pass
+
+    class E3:
+        pass
+
+    # (Don't try this at home, folks. Never create an EitherMonad instance yourself.
+    # Use the @monadic @monadic_method decorator.)
+    do: EitherMonad[Union[E1, E2, E3]] = EitherMonad()
+
+    e: Either[E2, int]
+
+    def foo(m: EitherMonad[E2]) -> Either[E2, str]:
+        return Either.right("Yay")
+
+    # We should be able to pass in an EitherMonad that can handle _at least_ E2.
+    # So EitherMonad should be covariant in its type parameter.
+    foo(do)

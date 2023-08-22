@@ -16,21 +16,17 @@ from typing import (
     overload,
 )
 
-from typing_extensions import Concatenate, ParamSpec, Protocol
+from typing_extensions import Concatenate, ParamSpec
 
 A = TypeVar("A", covariant=True)
 AV = TypeVar("AV", covariant=True)
 AV2 = TypeVar("AV2", covariant=True)
 A1 = TypeVar("A1")
-A2 = TypeVar("A2")
 AA = TypeVar("AA")
-A_con = TypeVar("A_con", contravariant=True)
 
 B = TypeVar("B", covariant=True)
 BV = TypeVar("BV", covariant=True)
 BV2 = TypeVar("BV2", covariant=True)
-B1 = TypeVar("B1")
-B2 = TypeVar("B2")
 BB = TypeVar("BB")
 
 C = TypeVar("C")
@@ -38,28 +34,19 @@ C1 = TypeVar("C1")
 C2 = TypeVar("C2")
 
 E = TypeVar("E", covariant=True)
-E1 = TypeVar("E1")
-E2 = TypeVar("E2")
 E_con = TypeVar("E_con", contravariant=True)
 
 X = TypeVar("X", bound=BaseException)
 P = ParamSpec("P")
-PP = ParamSpec("PP")
 
 
 @dataclass(frozen=True)
 class EitherException(Generic[A], Exception):
     value: A
+    message: str = ""
 
-
-@dataclass(frozen=True)
-class TypeMatchException(Generic[AA], Exception):
-    value: Optional[AA]
-
-
-class GetItem(Protocol[A_con, B]):
-    def __getitem__(self, item: A_con) -> B:
-        pass
+    def __str__(self) -> str:
+        return self.message or str(self.value)
 
 
 class Either(Generic[A, B], metaclass=ABCMeta):
@@ -227,7 +214,7 @@ def raise_exception_like(x: Any) -> NoReturn:
     if isinstance(x, BaseException):
         raise x
     elif x is None:
-        raise ValueError(f"Expected Some, got None.")
+        raise EitherException(value=None, message=f"Expected Some, got None.")
     else:
         raise RuntimeError(str(x))
 
