@@ -29,17 +29,20 @@ pip install pyrop
 A simple example:
 
 ```python
-from pyrop import monadic, catch, EitherMonad, Left
+from pyrop import EitherMonad, Left, catch, monadic
 
 catcher = catch[ValueError | TypeError]()
 
+
 @catcher
-def func_with_error():
+def func_with_error() -> None:
     raise ValueError("This is an error")
+
 
 @catcher
 def success_func() -> int:
     return 1
+
 
 @monadic
 def func(do: EitherMonad[ValueError | TypeError]) -> int:
